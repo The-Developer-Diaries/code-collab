@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CodeCollab - Real-time Code Sharing</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⟨⟩</text></svg>">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<!-- Welcome Modal -->
+<div class="overlay" id="welcomeOverlay">
+<div class="modal">
+<div class="logo-icon" style="width:48px;height:48px;font-size:20px;margin:0 auto 16px;">⟨⟩</div>
+<h2>CodeCollab</h2>
+<p>Share code in real-time with anyone, peer-to-peer. No server needed - works right from your browser.</p>
+<div class="modal-actions">
+<button class="btn btn-accent" onclick="createRoom()">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+<span>Create New Room</span>
+</button>
+<div class="or-divider">or</div>
+<div class="join-input-group">
+<input type="text" id="joinRoomInput" placeholder="Paste room code or link..." maxlength="80" spellcheck="false">
+<button class="btn" onclick="joinRoom()">Join</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Header -->
+<header class="header">
+<div class="header-left">
+<a class="logo" href="/">
+<div class="logo-icon">⟨⟩</div>
+<span class="logo-text">CodeCollab</span>
+</a>
+<div class="divider"></div>
+<div class="room-badge">
+<span>Room</span>
+<code id="roomIdDisplay">------</code>
+<span class="role-badge" id="roleBadge"></span>
+</div>
+</div>
+<div class="header-right">
+<div class="users-badge">
+<div class="users-dot"></div>
+<span id="userCount">1</span> online
+</div>
+<button class="btn" onclick="copyLink()">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+<span>Copy Link</span>
+</button>
+<button class="btn" onclick="downloadCode()">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+<span>Download</span>
+</button>
+</div>
+</header>
+<!-- Editor -->
+<div class="editor-container">
+<textarea id="editor"></textarea>
+</div>
+<!-- Footer -->
+<footer class="footer">
+<div class="footer-left">
+<div class="footer-item">
+<div class="status-indicator" id="statusDot"></div>
+<span id="statusText">Disconnected</span>
+</div>
+<div class="footer-item">
+<select class="language-select" id="languageSelect" onchange="changeLanguage()">
+<option value="javascript">JavaScript</option>
+<option value="text/typescript">TypeScript</option>
+<option value="python">Python</option>
+<option value="htmlmixed">HTML</option>
+<option value="css">CSS</option>
+<option value="text/x-java">Java</option>
+<option value="text/x-csrc">C</option>
+<option value="text/x-c++src">C++</option>
+<option value="text/x-csharp">C#</option>
+<option value="go">Go</option>
+<option value="rust">Rust</option>
+<option value="sql">SQL</option>
+<option value="shell">Shell</option>
+<option value="php">PHP</option>
+<option value="ruby">Ruby</option>
+<option value="markdown">Markdown</option>
+<option value="xml">XML</option>
+<option value="yaml">YAML</option>
+<option value="application/json">JSON</option>
+<option value="text/plain">Plain Text</option>
+</select>
+</div>
+</div>
+<div class="footer-right">
+<div class="footer-item" id="cursorPos">Ln 1, Col 1</div>
+</div>
+</footer>
+<div class="toast-container" id="toastContainer"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/go/go.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/rust/rust.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/sql/sql.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/shell/php.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/php/php.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/ruby/ruby.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/markdown/markdown.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/yaml/yaml.min.js"></script>
+
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+
+<script src="app.js"></script>
+
+</body>
+</html>

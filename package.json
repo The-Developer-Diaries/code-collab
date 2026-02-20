@@ -1,0 +1,9 @@
+{
+    "name": "code-collab",
+    "version": "1.0.0",
+    "description": "Real-time peer-to-peer code sharing - deployable on GitHub Pages",
+    "main": "server.js",
+    "scripts": {
+        "start": "node server.js"
+    }
+}
